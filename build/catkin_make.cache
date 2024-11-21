@@ -1,0 +1,2 @@
+my_turtlebot3_simulation:pkg1
+-DCATKIN_DEVEL_PREFIX=/home/manas/IRS_ws/devel -DCMAKE_INSTALL_PREFIX=/home/manas/IRS_ws/install -G Unix Makefiles

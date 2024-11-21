@@ -1,0 +1,8 @@
+prefix=/home/manas/IRS_ws/install
+
+Name: my_turtlebot3_simulation
+Description: Description of my_turtlebot3_simulation
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

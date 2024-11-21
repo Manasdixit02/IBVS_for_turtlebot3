@@ -1,0 +1,13 @@
+<launch>
+  <!-- Set the TurtleBot3 model -->
+  <env name="TURTLEBOT3_MODEL" value="burger"/>
+
+  <!-- Launch Gazebo with the custom world -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find my_turtlebot3_simulation)/worlds/wall_qr.world"/>
+  </include>
+
+  <!-- Launch TurtleBot3 bringup (optional, you may need to adjust this based on your needs) -->
+  <include file="$(find turtlebot3_bringup)/launch/turtlebot3_robot.launch"/>
+</launch>
+
