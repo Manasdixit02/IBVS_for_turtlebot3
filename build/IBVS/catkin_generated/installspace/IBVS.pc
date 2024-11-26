@@ -1,0 +1,8 @@
+prefix=/home/manas/IRS_ws/install
+
+Name: IBVS
+Description: Description of IBVS
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

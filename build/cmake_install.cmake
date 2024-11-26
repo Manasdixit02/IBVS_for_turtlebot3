@@ -131,6 +131,7 @@ endif()
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
   include("/home/manas/IRS_ws/build/gtest/cmake_install.cmake")
+  include("/home/manas/IRS_ws/build/IBVS/cmake_install.cmake")
   include("/home/manas/IRS_ws/build/my_turtlebot3_simulation/cmake_install.cmake")
   include("/home/manas/IRS_ws/build/pkg1/cmake_install.cmake")
 

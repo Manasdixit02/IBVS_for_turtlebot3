@@ -20,7 +20,7 @@
     <model name="marker11">
       <include>
         <uri>model://marker11</uri>
-        <pose>-0.15 4.9 1.0 1.57 0 1.57</pose>
+        <pose>-2 0 0 0 0 0</pose>
       </include>
     </model>
 <!--    <model name="marker_infini2">
