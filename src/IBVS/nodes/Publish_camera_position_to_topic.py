@@ -18,5 +18,6 @@ def publish_camera_pose(Camera_pose):
     
 if __name__ == '__main__':
     #values = np.array([-1.5,0.0,0.0,90.0,0.0,-90.0])
-    values = np.array([-1.0,0.0,0.0,90.0,0.0,-90.0])
+    #values = np.array([-1.0,0.0,0.0,90.0,0.0,-90.0])
+    values = np.array([0.0,4.0,0.0,90.0,0.0,0.0])
     publish_camera_pose(values)

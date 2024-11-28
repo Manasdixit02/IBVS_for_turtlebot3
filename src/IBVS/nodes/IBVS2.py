@@ -55,21 +55,36 @@ class Datas:
             if ((self.camera_coords != np.array([cam_coords.position.x,cam_coords.position.y,cam_coords.position.z,r[0],r[1],r[2]])).all()):
               self.camera_coords = np.array([cam_coords.position.x,cam_coords.position.y,cam_coords.position.z,r[0],r[1],r[2]])
               #print(self.camera_coords)
-
+              
+              #Perfect so far
+              
               #with open('output.csv','a') as csvfile:
               #  np.savetxt(csvfile, np.reshape(self.camera_coords,(1,6)),delimiter=',',fmt='%f')
               projected_desired = self.Corner_det(self.Feature_image)
-              projected_current = self.Corner_det(self.image)
               #print(projected_desired)
+              
+              #not perfect, sensible but a little off
+              
+              projected_current = self.Corner_det(self.image)
+              #print(projected_current)
+              
+              #Perfect, makes a lot of sense but points possibly way close to each other
+              
               p_mm_desired = self.Pixel_to_mm(self.camera_parameters,projected_desired)
+              
+              
+              
               p_mm_current = self.Pixel_to_mm(self.camera_parameters,projected_current)       
-
+              
+              #print(p_mm_current)
+              #p_mm_desired and current seems good
               sc = p_mm_desired.flatten()
               s = p_mm_current.flatten()
-              error = s-sc
-              print(error)
+              #error = (s-sc)/self.timestep
+              error = (s-sc)
+              #print(error)
               
-              if np.sum(abs(error))<=self.epsilon:
+              if np.sum((error))<=self.epsilon:
                 print("Hiba elhanyagolhato")
                 os._exit(0)
               else:
@@ -79,59 +94,78 @@ class Datas:
               
                 Interaction_matrix_current = np.zeros((projected_current.shape[0]*2,6));
                 for i in range(projected_current.shape[0]):
-                    Interaction_matrix_current[2*i:2*i+2,:] = self.Create_Lx(self.camera_coords[1],p_mm_current[i,:])
+                    Interaction_matrix_current[2*i:2*i+2,:] = self.Create_Lx(self.camera_coords[1],p_mm_current[i,:]) #changed from 1 to 0 in camera_coords[1]
 
               
                 Interaction_matrix = (Interaction_matrix_desired +Interaction_matrix_current)/2
                 Interaction_matrix = Interaction_matrix + np.ones((8,6)) * 1e-6
+                #print(Interaction_matrix)
+                
+                #perfect,Makes sense
+                
                 Interaction_matrix_inv = np.linalg.pinv(Interaction_matrix)
                 vc = -self.P*Interaction_matrix_inv@np.matrix.transpose(error)
-                #print(vc)
+                print(vc)
                 
                 rotation_matrix = R.from_euler('xyz',self.camera_coords[3:6],degrees = True).as_matrix()
-                rotation_pos = np.array([[-1,0,0],[0,-1,0],[0,0,1]])
-                rotation_ori = np.array([[-1,0,0],[0,1,0],[0,0,-1]])
                 
-                Linear_vec = np.reshape(rotation_pos@rotation_matrix@np.reshape(vc[0:3],(3,1)),(1,3))
+                #original
+                #rotation_pos = np.array([[-1,0,0],[0,-1,0],[0,0,1]])
+                #rotation_ori = np.array([[-1,0,0],[0,1,0],[0,0,-1]])
+                
+                #rotation_pos = np.array([[0,1,0],[-1,0,0],[0,0,1]])
+                #rotation_ori = np.array([[0,1,0],[1,0,0],[0,0,1]])
+                
+                rotation_pos = np.array([[1,0,0],[0,1,0],[0,0,1]])
+                rotation_ori = np.array([[1,0,0],[0,1,0],[0,0,1]])
+                
+                
+                #Linear_vec = np.reshape(rotation_pos@rotation_matrix@np.reshape(vc[0:3],(3,1)),(1,3))
+                #Rotational_vec = np.reshape(rotation_ori@np.reshape(vc[3:6],(3,1)),(1,3))
+                
+                Linear_vec = np.reshape(rotation_pos@np.reshape(vc[0:3],(3,1)),(1,3))
                 Rotational_vec = np.reshape(rotation_ori@np.reshape(vc[3:6],(3,1)),(1,3))  
+                
                 #Linear_vec = np.clip(Linear_vec, None, 0.05)
                 #print(Linear_vec)
                 
-                t = (self.camera_coords[0:3] + np.reshape(Linear_vec,(1,3))*self.timestep)    
+                t = (self.camera_coords[0:3] + np.reshape(Linear_vec,(1,3))*self.timestep)  
+                print(t)  
                 state_msg = ModelState()
                 state_msg.model_name = 'turtlebot3_waffle'
                 
-                #state_msg.twist = Twist()
-                #state_msg.twist.linear = Vector3(*vc[0:3])
-                #state_msg.twist.angular = Vector3(*vc[3:6])
+                #twist = Twist()
+                #twist.linear = Vector3(*vc[0:3])
+                #twist.angular = Vector3(*vc[3:6])
+                #print(twist.linear.y)
                 
-                #state_msg.pose.position.x = t[0,0]
+                state_msg.pose.position.x = t[0,0]
                 #state_msg.pose.position.x = 0
-                #state_msg.pose.position.y = t[0,1]
+                state_msg.pose.position.y = t[0,1]
                 #state_msg.pose.position.y = 1
-                #state_msg.pose.position.z = t[0,2]
+                state_msg.pose.position.z = t[0,2]
                 #state_msg.pose.position.z = 0
-                #r = self.camera_coords[3:6] + np.reshape(Rotational_vec,(1,3))*self.timestep*180
-                #r = R.from_euler('xyz',r,degrees=True).as_matrix()
-                #r = np.matmul(r,np.array([[0,1,0],[0,0,1],[1,0,0]]))
-                #r = R.from_matrix(r).as_euler('xyz',degrees=True)
-                #q = R.from_euler('xyz',r,degrees = True).as_quat()
-                #state_msg.pose.orientation.x = q[0,0]
+                r = self.camera_coords[3:6] + np.reshape(Rotational_vec,(1,3))*self.timestep*180
+                r = R.from_euler('xyz',r,degrees=True).as_matrix()
+                r = np.matmul(r,np.array([[0,1,0],[0,0,1],[1,0,0]]))
+                r = R.from_matrix(r).as_euler('xyz',degrees=True)
+                q = R.from_euler('xyz',r,degrees = True).as_quat()
+                state_msg.pose.orientation.x = q[0,0]
                 #state_msg.pose.orientation.x = cam_coords.orientation.x
-                #state_msg.pose.orientation.y = q[0,1]
+                state_msg.pose.orientation.y = q[0,1]
                 #state_msg.pose.orientation.y = cam_coords.orientation.y
-                #state_msg.pose.orientation.z = q[0,2]
+                state_msg.pose.orientation.z = q[0,2]
                 #state_msg.pose.orientation.z = cam_coords.orientation.z
-                #state_msg.pose.orientation.w = q[0,3]
+                state_msg.pose.orientation.w = q[0,3]
                 #state_msg.pose.orientation.w = cam_coords.orientation.w
                 rospy.wait_for_service('/gazebo/set_model_state')
-                #try:
-                    #set_state = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
-                    #resp = set_state( state_msg )
-                    #print (resp)
+                try:
+                    set_state = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
+                    resp = set_state( state_msg )
+                    print (resp)
                     #print(error)
-                #except rospy.ServiceException:
-                 #   print("Camera position cannot be set!")
+                except rospy.ServiceException:
+                    print("Camera position cannot be set!")
                           
     def image_callback(self, msg):
         self.image = bridge.imgmsg_to_cv2(msg, "bgr8")
@@ -144,10 +178,16 @@ class Datas:
     def Pixel_to_mm(self,camera_parameters,D2_points):
         output = D2_points
         Camera_matrix = np.reshape(camera_parameters.K,(3,3))
+        #print(Camera_matrix)
+       
+        
+        
         for i in range(D2_points.shape[0]):
+            #output[i,0] = (D2_points[i,0] - Camera_matrix[0,2])/Camera_matrix[0,0]
+            #output[i,1] = (D2_points[i,1] - Camera_matrix[1,2])/Camera_matrix[1,1]
             Point_mm = np.matrix.transpose(np.linalg.inv(Camera_matrix)@np.reshape(np.append(D2_points[i,:],1),(3,1)))
             output[i,:] = Point_mm[0,0:2]
-            #print(output)
+        #print(output)
         return output
 
     def Create_Lx(self,Z,D2_point):
@@ -223,7 +263,7 @@ class Datas:
         piros_sp = scipy.ndimage.center_of_mass(red_mask)
         fekete_sp = scipy.ndimage.center_of_mass(black_mask)
              
-        corners = np.array([[piros_sp[1],piros_sp[0]],[zold_sp[1],zold_sp[0]],[kek_sp[1],kek_sp[0]],[fekete_sp[1],fekete_sp[0]]])
+        corners = np.array([[piros_sp[0],piros_sp[1]],[zold_sp[0],zold_sp[1]],[kek_sp[0],kek_sp[1]],[fekete_sp[0],fekete_sp[1]]])
         #print(corners)
         return corners
     
@@ -262,7 +302,7 @@ class Datas:
 if __name__ == '__main__':
     os.chdir(sys.path[0])
     rospy.init_node('IBVS')
-    ibvs = Datas(1/60,0.00003,0.01)
+    ibvs = Datas(1/60,3,0.01)
     rospy.Subscriber('/camera/rgb/image_raw', Image, ibvs.image_callback)
     rospy.Subscriber('/camera/rgb/camera_info', CameraInfo, ibvs.camera_parameters_callback)
     rospy.Subscriber('/gazebo/model_states', ModelStates, ibvs.IBVS)

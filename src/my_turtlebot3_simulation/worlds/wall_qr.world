@@ -1,6 +1,22 @@
 <?xml version="1.0" ?>
 <sdf version="1.4">
   <world name="default">
+  
+  <!-- Sunlight (Directional Light) -->
+    <light name="sun" type="directional">
+      <pose>0 0 100 0 0 0</pose>  <!-- Position of the sun (can be adjusted) -->
+      <diffuse>1 1 1 1</diffuse>  <!-- Color of the light (white light) -->
+      <specular>1 1 1 1</specular>  <!-- Specular reflection (white) -->
+      <attenuation>
+        <range>1000</range>  <!-- How far the light reaches -->
+        <constant>0.0</constant>
+        <linear>0.0</linear>
+        <quadratic>0.0</quadratic>
+      </attenuation>
+      <direction>-0.5 -0.5 -1</direction>  <!-- Direction of the light -->
+      <intensity>1.0</intensity>  <!-- Intensity of the light -->
+    </light>
+
     <include>
       <uri>model://ground_plane</uri>
     </include>
@@ -17,10 +33,10 @@
         <pose>1 5 0 0 0 0</pose>
       </include>
     </model> -->
-    <model name="marker11">
+    <model name="marker00">
       <include>
-        <uri>model://marker11</uri>
-        <pose>-2 0 0 0 0 0</pose>
+        <uri>model://marker00</uri>
+        <pose>0 0 -0.1 0 0 0</pose>
       </include>
     </model>
 <!--    <model name="marker_infini2">
