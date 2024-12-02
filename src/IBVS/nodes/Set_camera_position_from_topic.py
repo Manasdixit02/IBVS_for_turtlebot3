@@ -16,6 +16,7 @@ def signal_handler(sig, frame):
 def subscribe_to_pose():
     rospy.init_node('set_pose')
     rospy.Subscriber("/Camera_position", Float64MultiArray, callback)
+    rospy.Subscriber("/Marker_position", Float64MultiArray, obj_callback)
     rospy.spin()
 
 
@@ -35,7 +36,7 @@ def callback(msg):
     state_msg.pose.orientation.y = r[1]
     state_msg.pose.orientation.z = r[2]
     state_msg.pose.orientation.w = r[3]
-
+    rospy.sleep(1)
     rospy.wait_for_service('/gazebo/set_model_state')
     try:
         set_state = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
@@ -43,6 +44,35 @@ def callback(msg):
 
     except rospy.ServiceException:
         print("Service call failed") 
+
+
+def obj_callback(msg):
+    
+    state_msg1 = ModelState()
+    state_msg1.model_name = 'marker00'
+    state_msg1.pose.position.x = msg.data[0]
+    state_msg1.pose.position.y = msg.data[1]
+    state_msg1.pose.position.z = msg.data[2]
+    r = R.from_euler('xyz',msg.data[3:6],degrees=True)
+    r = r.as_matrix()
+    r = np.matmul(r,np.array([[0,1,0],[0,0,1],[1,0,0]]))
+    r = R.from_matrix(r)
+    r = r.as_quat()
+    state_msg1.pose.orientation.x = r[0]
+    state_msg1.pose.orientation.y = r[1]
+    state_msg1.pose.orientation.z = r[2]
+    state_msg1.pose.orientation.w = r[3]
+    rospy.sleep(1)
+    rospy.wait_for_service('/gazebo/set_model_state')
+    try:
+        set_state1 = rospy.ServiceProxy('/gazebo/set_model_state', SetModelState)
+        resp = set_state1( state_msg1 )
+
+    except rospy.ServiceException:
+        print("Service call failed") 
+
+
+
 
 if __name__ == '__main__':
     signal.signal(signal.SIGINT, signal_handler)

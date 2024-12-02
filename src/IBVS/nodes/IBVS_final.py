@@ -7,6 +7,7 @@ import scipy
 import rospy
 import cv2 as cv
 import numpy as np
+import math
 
 from geometry_msgs.msg import Pose, Twist, Vector3
 
@@ -305,7 +306,10 @@ class Datas:
         x, y = int(D2_points[1]), int(D2_points[0])
         #print(x,y)
         depth_at_point = img[x, y]
-        return depth_at_point
+        if math.isnan(depth_at_point):
+            return 7
+        else:
+            return depth_at_point
         #print(Camera_matrix)    
     
                 
@@ -314,7 +318,7 @@ class Datas:
 if __name__ == '__main__':
     os.chdir(sys.path[0])
     rospy.init_node('IBVS')
-    ibvs = Datas(1/60,0.1,0.5)
+    ibvs = Datas(1/60,0.05,0.5)
     rospy.Subscriber('/camera/rgb/image_raw', Image, ibvs.image_callback)
     rospy.Subscriber('/camera/rgb/camera_info', CameraInfo, ibvs.camera_parameters_callback)
     rospy.Subscriber('/camera/depth/image_raw', Image, ibvs.depth_callback)
